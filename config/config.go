@@ -12,12 +12,13 @@ type Config struct {
 	RedisConfig     RedisConfig     `mapstructure:"redis"`
 	DBConfig        DBConfig        `mapstructure:"database"`
 	AuthTokenConfig AuthTokenConfig `mapstructure:"auth-token"`
+	Roles           []string        `mapstructure:"roles"`
 }
 
 type ServerConfig struct {
-	Host string 	`mapstructure:"host"`
-	Port int    	`mapstructure:"port"`
-	Env  string		`mapstructure:"env"`
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
+	Env  string `mapstructure:"env"`
 }
 
 type RedisConfig struct {
@@ -61,4 +62,3 @@ func GetConfig() *Config {
 
 	return &cfg
 }
-

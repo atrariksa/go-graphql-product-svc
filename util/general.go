@@ -45,3 +45,11 @@ func ValidatePassword(givenPlainTextPassword string, storedHashedPassword string
 	return bcrypt.CompareHashAndPassword(hashedPassword, password)
 }
 
+func IsMemberofStringSlice(s []string, i string) bool {
+	for _, v := range s {
+		if v == i {
+			return true
+		}
+	}
+	return false
+}

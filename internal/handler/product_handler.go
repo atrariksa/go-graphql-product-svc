@@ -2,23 +2,27 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go-graphql-product-svc/internal/model"
 	"go-graphql-product-svc/internal/service"
 	"log"
 	"net/http"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/graphql-go/graphql"
 )
 
 type ProductHandler struct {
 	Service service.IProductService
+	cv      service.IClaimsValidator
 }
 
 // NewProductHandler creates a new handler for product-related routes
-func NewProductHandler(service service.IProductService) *ProductHandler {
+func NewProductHandler(service service.IProductService, cv service.IClaimsValidator) *ProductHandler {
 	return &ProductHandler{
 		Service: service,
+		cv:      cv,
 	}
 }
 
@@ -35,6 +39,9 @@ var productType = graphql.NewObject(graphql.ObjectConfig{
 
 // ServeGraphQL handles GraphQL requests
 func (h *ProductHandler) ServeGraphQL(w http.ResponseWriter, r *http.Request) {
+
+	rCtx := r.Context()
+
 	var params map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -86,6 +93,10 @@ func (h *ProductHandler) ServeGraphQL(w http.ResponseWriter, r *http.Request) {
 				"stock": &graphql.ArgumentConfig{Type: graphql.Int},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				p.Context = rCtx
+				if !h.cv.IsAdmin(rCtx.Value("claims").(jwt.MapClaims)) {
+					return nil, errors.New("you cannot access this resource")
+				}
 				id := p.Args["id"].(string)
 				name := p.Args["name"].(string)
 				price := p.Args["price"].(float64)
@@ -101,6 +112,10 @@ func (h *ProductHandler) ServeGraphQL(w http.ResponseWriter, r *http.Request) {
 				"id": &graphql.ArgumentConfig{Type: graphql.String},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				p.Context = rCtx
+				if !h.cv.IsAdmin(rCtx.Value("claims").(jwt.MapClaims)) {
+					return nil, errors.New("you cannot access this resource")
+				}
 				id := p.Args["id"].(string)
 				err := h.Service.DeleteProduct(p.Context, id)
 				if err != nil {

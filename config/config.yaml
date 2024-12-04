@@ -19,3 +19,4 @@ database:
 auth-token:
   duration: 3600
   secretkey: "anysecret"
+roles: ["Admin", "User"]

@@ -79,9 +79,10 @@ func getJWTMiddleWare(cfg *config.Config) func(http.Handler) http.Handler {
 func SetupServer() {
 	cfg := config.GetConfig()
 	db := util.GetMongoDB(cfg)
+	claimsValidator := service.NewClaimsValidator()
 	productRepo := repository.NewProductRepository(db)
 	productService := service.NewProductService(productRepo)
-	productHandler := NewProductHandler(productService)
+	productHandler := NewProductHandler(productService, claimsValidator)
 	jwtMiddleware := getJWTMiddleWare(cfg)
 	http.Handle("/product-svc", corsMiddleware(jwtMiddleware(http.HandlerFunc(productHandler.ServeGraphQL))))
 
